@@ -1,0 +1,100 @@
+
+install.packages("tensorflow")
+tensorflow::install_tensorflow()
+
+library('tensorflow')
+
+
+install.packages('keras')
+library('keras')
+
+cifar10 <- dataset_cifar10()
+
+
+x_train = cifar10$train$x/255
+x_test  = cifar10$test$x/255
+y_train = keras::to_categorical(cifar10$train$y, num_classes = 10)
+y_test  = keras::to_categorical(cifar10$test$y,  num_classes = 10)
+
+
+install.packages("BiocManager") 
+BiocManager::install("EBImage")
+library('EBImage')
+pictures = c(9802, 5, 7, 10, 4, 28,1, 8, 9, 2)
+
+fig_img  = list()
+for (i in 1:10 ) {
+  fig_mat  = cifar10$train$x[pictures[i], , , ]
+  fig_img[[i]]  = normalize(Image(transpose(fig_mat), dim=c(32,32,3), colormode='Color'))
+}
+fig_img_comb = combine(fig_img[1:10])
+fig_img_obj = tile(fig_img_comb,5)
+plot(fig_img_obj, all=T)
+
+label_name = c("flyer", "car", "bird", "cat", "deer", "dog", "frog ", "horse", "ship", "truck")
+label_name
+
+model_runexternal_01 = keras_model_sequential()
+model_runexternal_01 %>%
+  layer_conv_2d( filters = 32, kernel_size = c(3,3), padding = "same", input_shape = c(32, 32, 3) ) %>%
+  layer_activation("relu") %>%
+  layer_conv_2d(filters  = 32, kernel_size = c(3,3)) %>%
+  layer_activation("relu") %>%
+  layer_max_pooling_2d(pool_size = c(2,2)) %>%
+  layer_dropout(0.25) %>%
+  layer_conv_2d(filters = 32, kernel_size = c(3,3), padding = "same") %>%
+  layer_activation("relu") %>%
+  layer_conv_2d(filters = 32, kernel_size = c(3,3)) %>%
+  layer_activation("relu") %>%
+  layer_max_pooling_2d(pool_size = c(2,2)) %>%
+  layer_dropout(0.25) %>%
+  layer_flatten() %>%
+  layer_dense(512) %>%
+  layer_activation("relu") %>%
+  layer_dropout(0.5) %>%
+  layer_dense(10) %>%
+  layer_activation("softmax")%>%
+  compile(
+          loss = "categorical_crossentropy",
+          optimizer = optimizer_rmsprop(lr = 0.0001, decay = 1e-6),
+          metrics = "accuracy" )
+
+summary(model_runexternal_01)
+
+
+start.time = Sys.time()
+batch_size = 32
+epochs = 60
+
+Train_model_runexternal_01 = model_runexternal_01 %>% fit(
+     x_train, y_train,
+     batch_size = batch_size,
+     epochs = epochs,
+     validation_data = list(x_test, y_test),
+     shuffle = TRUE )
+
+end.time = Sys.time()
+
+
+load("extRunModelVariables.RData")
+
+runtime.taken 
+
+
+read_SER_model_runexternal_01RDS = readRDS("SER_model_runexternal_01RDS")
+
+loadmymodel = keras::unserialize_model(read_SER_model_runexternal_01RDS, compile = T)
+
+acc_loadmymodel = loadmymodel %>% tensorflow::evaluate(x_test,  y_test)
+acc_loadmymodel
+
+
+pred = loadmymodel %>% keras::predict_classes(x_test)
+pred11 = (pred +1)
+
+y_actu = NA
+for (kk in 1:  dim(y_test)[1]  ) {
+  actlist = which(y_test[kk,] == 1)
+  y_actu = append(  y_actu, actlist )
+}
+y_actu =  y_actu[-1]
