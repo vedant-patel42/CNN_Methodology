@@ -6,6 +6,8 @@ Convolution Neural Network (CNN) is a major breakthrough in the field of Deep Le
 
 The R file is written on google Colab which requires internal environment setups in order to run these files. Click on the following link to run file.
 
-https://colab.research.google.com/drive/19SYFh4fizPHX6cdY6Fve0VGJkOqaIFUQ?usp=sharing
+1) Convolutional Neural Network - https://colab.research.google.com/drive/19SYFh4fizPHX6cdY6Fve0VGJkOqaIFUQ?usp=sharing
+
+2) Random Forest - https://colab.research.google.com/drive/19TsO2iHwBrRXEnboSLLEE9SuCGFOZF81?usp=sharing
 
 
